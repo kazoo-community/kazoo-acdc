@@ -1062,6 +1062,7 @@ maybe_connect_to_agent(MyQ, EPs, Call, Timeout, AgentId, _CdrUrl) ->
 
     Prop = props:filter_undefined(
              [{<<"Msg-ID">>, kz_binary:rand_hex(6)}
+             ,{<<"Custom-Application-Vars">>, kapps_call:custom_application_vars(Call)}
              ,{<<"Custom-Channel-Vars">>, kz_json:from_list(CCVs)}
              ,{<<"Timeout">>, Timeout}
              ,{<<"Endpoints">>, Endpoints}
