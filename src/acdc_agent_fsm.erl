@@ -637,9 +637,7 @@ ready('cast', {'member_connect_req', JObj}, #state{agent_listener=AgentListener}
     acdc_agent_listener:member_connect_resp(AgentListener, JObj),
     {'next_state', 'ready', State};
 ready('cast', {'originate_uuid', ACallId, ACtrlQ}, #state{agent_listener=AgentListener}=State) ->
-    lager:debug("ignoring an outbound call that is the result of a failed originate"),
     acdc_agent_listener:originate_uuid(AgentListener, ACallId, ACtrlQ),
-    acdc_agent_listener:channel_hungup(AgentListener, ACallId),
     {'next_state', 'ready', State};
 ready('cast', {'channel_answered', CallId}, #state{outbound_call_ids=OutboundCallIds}=State) ->
     case lists:member(CallId, OutboundCallIds) of
@@ -672,8 +670,8 @@ ready('info', ?NEW_CHANNEL_FROM(CallId), State) ->
 ready('info', ?NEW_CHANNEL_TO(CallId, 'undefined'), State) ->
     lager:debug("ready call_to outbound: ~s", [CallId]),
     {'next_state', 'outbound', start_outbound_call_handling(CallId, State), 'hibernate'};
-ready('info', ?NEW_CHANNEL_TO(_CallId, _MemberCallId), State) ->
-    {'next_state', 'ready', State};
+ready('info', ?NEW_CHANNEL_TO(CallId, MemberCallId), State) ->
+    cancel_if_failed_originate(CallId, MemberCallId, 'ready', State);
 ready('info', ?DESTROYED_CHANNEL(CallId, _Cause), #state{agent_listener=AgentListener
                                                         ,outbound_call_ids=OutboundCallIds
                                                         }=State) ->
@@ -927,10 +925,8 @@ ringing('info', ?NEW_CHANNEL_TO(CallId, 'undefined'), #state{agent_listener=Agen
 ringing('info', ?NEW_CHANNEL_TO(CallId, MemberCallId), #state{member_call_id=MemberCallId}=State) ->
     lager:debug("new channel ~s for agent", [CallId]),
     {'next_state', 'ringing', State};
-ringing('info', ?NEW_CHANNEL_TO(CallId, _MemberCallId), #state{agent_listener=AgentListener}=State) ->
-    lager:debug("found a uuid ~s that was from a previous queue call", [CallId]),
-    acdc_agent_listener:channel_hungup(AgentListener, CallId),
-    {'next_state', 'ringing', State};
+ringing('info', ?NEW_CHANNEL_TO(CallId, MemberCallId), State) ->
+    cancel_if_failed_originate(CallId, MemberCallId, 'ringing', State);
 ringing('info', ?DESTROYED_CHANNEL(AgentCallId, Cause), #state{agent_listener=AgentListener
                                                               ,agent_call_id=AgentCallId
                                                               ,account_id=AccountId
@@ -1264,8 +1260,8 @@ paused('info', ?NEW_CHANNEL_FROM(CallId), State) ->
 paused('info', ?NEW_CHANNEL_TO(CallId, 'undefined'), State) ->
     lager:debug("paused call_to outbound: ~s", [CallId]),
     {'next_state', 'outbound', start_outbound_call_handling(CallId, State), 'hibernate'};
-paused('info', ?NEW_CHANNEL_TO(_CallId, _MemberCallId), State) ->
-    {'next_state', 'paused', State};
+paused('info', ?NEW_CHANNEL_TO(CallId, MemberCallId), State) ->
+    cancel_if_failed_originate(CallId, MemberCallId, 'paused', State);
 paused('info', {'timeout', Ref, ?PAUSE_MESSAGE}, #state{pause_ref=Ref
                                                        ,agent_listener=AgentListener
                                                        }=State) when is_reference(Ref) ->
@@ -1294,9 +1290,7 @@ outbound('cast', {'member_connect_satisfied', _}, State) ->
     lager:info("unexpected connect_satisfied"),
     {'next_state', 'wrapup', State};
 outbound('cast', {'originate_uuid', ACallId, ACtrlQ}, #state{agent_listener=AgentListener}=State) ->
-    lager:debug("ignoring an outbound call that is the result of a failed originate"),
     acdc_agent_listener:originate_uuid(AgentListener, ACallId, ACtrlQ),
-    acdc_agent_listener:channel_hungup(AgentListener, ACallId),
     {'next_state', 'outbound', State};
 outbound('cast', {'originate_failed', _E}, State) ->
     {'next_state', 'outbound', State};
@@ -1346,8 +1340,8 @@ outbound('info', ?NEW_CHANNEL_TO(CallId, 'undefined'), #state{agent_listener=Age
     lager:debug("outbound call_to outbound: ~s", [CallId]),
     acdc_util:bind_to_call_events(CallId, AgentListener),
     {'next_state', 'outbound', State#state{outbound_call_ids=[CallId | lists:delete(CallId, OutboundCallIds)]}};
-outbound('info', ?NEW_CHANNEL_TO(_CallId, _MemberCallId), State) ->
-    {'next_state', 'outbound', State};
+outbound('info', ?NEW_CHANNEL_TO(CallId, MemberCallId), State) ->
+    cancel_if_failed_originate(CallId, MemberCallId, 'outbound', State);
 outbound('info', ?DESTROYED_CHANNEL(CallId, Cause), #state{agent_listener=AgentListener
                                                           ,outbound_call_ids=OutboundCallIds
                                                           }=State) ->
@@ -1542,6 +1536,22 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %%%=============================================================================
 %%% Internal functions
 %%%=============================================================================
+
+%%------------------------------------------------------------------------------
+%% @doc
+%% @end
+%%------------------------------------------------------------------------------
+-spec cancel_if_failed_originate(kz_term:ne_binary(), kz_term:ne_binary(), atom(), state()) ->
+          {'next_state', atom(), state()}.
+cancel_if_failed_originate(CallId, MemberCallId, StateName, #state{agent_listener=AgentListener
+                                                                  ,member_call_id=MemberCallId1
+                                                                  }=State) when MemberCallId =/= MemberCallId1 ->
+    lager:debug("cancelling ~s (failed originate from queue call ~s"
+               ,[CallId, MemberCallId]),
+    acdc_agent_listener:channel_hungup(AgentListener, CallId),
+    {'next_state', StateName, State};
+cancel_if_failed_originate(_, _, StateName, State) ->
+    {'next_state', StateName, State}.
 
 %%------------------------------------------------------------------------------
 %% @doc
