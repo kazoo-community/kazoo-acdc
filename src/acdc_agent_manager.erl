@@ -7,6 +7,7 @@
 %%%   and more!!!
 %%%
 %%% @author James Aimonetti
+%%% @author Daniel Finke
 %%%
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -55,6 +56,7 @@
                       ,{<<"agent">>, <<"end_wrapup">>}
                       ,{<<"agent">>, <<"login_queue">>}
                       ,{<<"agent">>, <<"logout_queue">>}
+                      ,{<<"agent">>, <<"restart">>}
                       ]
                      }
                     ,{{'acdc_agent_handler', 'handle_stats_req'}
