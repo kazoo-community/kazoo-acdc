@@ -123,7 +123,7 @@
 -define(BINDINGS(AcctId, AgentId), [{'self', []}
                                    ,{'acdc_agent', [{'account_id', AcctId}
                                                    ,{'agent_id', AgentId}
-                                                   ,{'restrict_to', ['sync', 'stats_req']}
+                                                   ,{'restrict_to', ['member_connect_win', 'sync', 'stats_req']}
                                                    ]}
                                    ,{'conf', [{'action', <<"*">>}
                                              ,{'db', kzs_util:format_account_db(AcctId)}
