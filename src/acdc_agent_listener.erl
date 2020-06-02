@@ -18,6 +18,7 @@
         ,member_connect_resp/2
         ,member_connect_retry/2
         ,member_connect_accepted/1, member_connect_accepted/2
+        ,monitor_connect_accepted/2
         ,agent_timeout/1
         ,bridge_to_member/6
         ,hangup_call/1
@@ -123,7 +124,7 @@
 -define(BINDINGS(AcctId, AgentId), [{'self', []}
                                    ,{'acdc_agent', [{'account_id', AcctId}
                                                    ,{'agent_id', AgentId}
-                                                   ,{'restrict_to', ['member_connect_win', 'sync', 'stats_req']}
+                                                   ,{'restrict_to', ['fsm_shared', 'member_connect_win', 'sync', 'stats_req']}
                                                    ]}
                                    ,{'conf', [{'action', <<"*">>}
                                              ,{'db', kzs_util:format_account_db(AcctId)}
@@ -215,6 +216,10 @@ member_connect_accepted(Srv) ->
 -spec member_connect_accepted(pid(), kz_term:ne_binary()) -> 'ok'.
 member_connect_accepted(Srv, ACallId) ->
     gen_listener:cast(Srv, {'member_connect_accepted', ACallId}).
+
+-spec monitor_connect_accepted(pid(), kz_term:ne_binary()) -> 'ok'.
+monitor_connect_accepted(Srv, ACallId) ->
+    gen_listener:cast(Srv, {'monitor_connect_accepted', ACallId}).
 
 -spec hangup_call(pid()) -> 'ok'.
 hangup_call(Srv) ->
@@ -665,6 +670,10 @@ handle_cast({'member_connect_accepted', ACallId}, #state{msg_queue_id=AmqpQueue
     send_member_connect_accepted(AmqpQueue, call_id(Call), AcctId, AgentId, MyId),
     [send_agent_busy(AcctId, AgentId, QueueId) || QueueId <- Qs],
     {'noreply', State#state{agent_call_ids=ACallIds1}, 'hibernate'};
+
+handle_cast({'monitor_connect_accepted', ACallId}, #state{agent_call_ids=ACallIds}=State) ->
+    lager:debug("monitoring ~s", [ACallId]),
+    {'noreply', State#state{agent_call_ids=[ACallId | ACallIds]}, 'hibernate'};
 
 handle_cast({'member_connect_resp', ReqJObj}, #state{agent_id=AgentId
                                                     ,last_connect=LastConn
