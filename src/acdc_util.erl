@@ -95,7 +95,7 @@ agents_in_queue(AcctDb, QueueId) ->
     of
         {'ok', []} -> [];
         {'error', _E} -> lager:debug("failed to lookup agents for ~s: ~p", [QueueId, _E]), [];
-        {'ok', As} -> [kz_json:get_value(<<"value">>, A) || A <- As]
+        {'ok', As} -> As
     end.
 
 -spec agent_devices(kz_term:ne_binary(), kz_term:ne_binary()) -> kz_json:objects().
