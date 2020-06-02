@@ -148,7 +148,7 @@ proc_id(Pid, Node) -> list_to_binary([kz_term:to_binary(Node), "-", pid_to_list(
 
 -spec hangup_cause(kz_json:object()) -> kz_term:ne_binary().
 hangup_cause(JObj) ->
-    case kz_json:get_value(<<"Hangup-Cause">>, JObj) of
+    case kz_json:get_ne_binary_value(<<"Hangup-Cause">>, JObj) of
         'undefined' -> <<"unknown">>;
         Cause -> Cause
     end.
