@@ -23,7 +23,7 @@
         ,new_queue/0
         ]).
 
--include("kazoo_proper.hrl").
+-include_lib("properly/src/properly.hrl").
 
 -define(ACCOUNT_NAMES, [<<?MODULE_STRING>>]).
 
