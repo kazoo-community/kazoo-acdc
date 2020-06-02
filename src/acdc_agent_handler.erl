@@ -318,8 +318,13 @@ handle_member_message(JObj, Props, <<"connect_req">>) ->
     'true' = kapi_acdc_queue:member_connect_req_v(JObj),
     acdc_agent_fsm:member_connect_req(props:get_value('fsm_pid', Props), JObj);
 handle_member_message(JObj, Props, <<"connect_win">>) ->
-    'true' = kapi_acdc_queue:member_connect_win_v(JObj),
-    acdc_agent_fsm:member_connect_win(props:get_value('fsm_pid', Props), JObj);
+    'true' = kapi_acdc_agent:member_connect_win_v(JObj),
+    FSMPid = props:get_value('fsm_pid', Props),
+    MyId = acdc_util:proc_id(FSMPid),
+    case lists:member(MyId, kz_json:get_list_value(<<"Agent-Process-IDs">>, JObj, [])) of
+        'true' -> acdc_agent_fsm:member_connect_win(FSMPid, JObj, 'same_node');
+        'false' -> acdc_agent_fsm:member_connect_win(FSMPid, JObj, 'different_node')
+    end;
 handle_member_message(JObj, Props, <<"connect_satisfied">>) ->
     'true' = kapi_acdc_queue:member_connect_satisfied_v(JObj),
     acdc_agent_fsm:member_connect_satisfied(props:get_value('fsm_pid', Props), JObj);
