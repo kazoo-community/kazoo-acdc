@@ -1488,7 +1488,6 @@ handle_event('load_endpoints', StateName, #state{agent_id=AgentId
                                                 }=State) ->
     Setters = [{fun kapps_call:set_account_id/2, AccountId}
               ,{fun kapps_call:set_account_db/2, AccountDb}
-              ,{fun kapps_call:set_owner_id/2, AgentId}
               ,{fun kapps_call:set_resource_type/2, ?RESOURCE_TYPE_AUDIO}
               ],
 
@@ -1856,7 +1855,6 @@ maybe_remove_endpoint(EPId, EPs, AccountId) ->
 convert_to_endpoint(EPDoc) ->
     Setters = [{fun kapps_call:set_account_id/2, kz_doc:account_id(EPDoc)}
               ,{fun kapps_call:set_account_db/2, kz_doc:account_db(EPDoc)}
-              ,{fun kapps_call:set_owner_id/2, kzd_devices:owner_id(EPDoc)}
               ,{fun kapps_call:set_resource_type/2, ?RESOURCE_TYPE_AUDIO}
               ],
 

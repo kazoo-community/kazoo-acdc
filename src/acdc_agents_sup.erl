@@ -79,7 +79,7 @@ new_thief(Call, QueueId) ->
     AccountId = kapps_call:account_id(Call),
     CallId = kapps_call:call_id(Call),
     Id = ?THIEF_ID(AccountId, QueueId, CallId),
-    supervisor:start_child(?MODULE, ?CHILD(Id, [Call, QueueId])).
+    supervisor:start_child(?SERVER, ?CHILD(Id, [Call, QueueId])).
 
 -spec stop_agent(kz_term:ne_binary(), kz_term:ne_binary()) -> kz_types:sup_deletechild_ret().
 stop_agent(AcctId, AgentId) ->
