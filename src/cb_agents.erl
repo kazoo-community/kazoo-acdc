@@ -340,7 +340,7 @@ fetch_all_current_agent_stats(Context) ->
 -spec fetch_all_current_stats(cb_context:context(), kz_term:api_binary()) -> cb_context:context().
 fetch_all_current_stats(Context, AgentId) ->
     Now = kz_time:now_s(),
-    From = Now - min(?SECONDS_IN_DAY, ?ACDC_CLEANUP_WINDOW),
+    From = Now - ?ACDC_CLEANUP_WINDOW,
 
     Req = props:filter_undefined(
             [{<<"Account-ID">>, cb_context:account_id(Context)}
@@ -388,7 +388,7 @@ remove_timestamps(AgentStats) ->
           cb_context:context().
 fetch_all_current_statuses(Context, AgentId, Status) ->
     Now = kz_time:now_s(),
-    From = Now - min(?SECONDS_IN_DAY, ?ACDC_CLEANUP_WINDOW),
+    From = Now - ?ACDC_CLEANUP_WINDOW,
 
     Opts = props:filter_undefined(
              [{<<"Status">>, Status}

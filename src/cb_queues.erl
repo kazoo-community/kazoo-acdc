@@ -659,7 +659,7 @@ fetch_all_queue_stats(Context) ->
 fetch_all_current_queue_stats(Context) ->
     lager:debug("querying for all recent stats"),
     Now = kz_time:now_s(),
-    From = Now - min(?SECONDS_IN_DAY, ?ACDC_CLEANUP_WINDOW),
+    From = Now - ?ACDC_CLEANUP_WINDOW,
 
     Req = props:filter_undefined(
             [{<<"Account-ID">>, cb_context:account_id(Context)}
