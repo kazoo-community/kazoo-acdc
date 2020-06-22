@@ -1652,7 +1652,7 @@ call_id(JObj) ->
     end.
 
 %% returns time left in seconds
--spec time_left(reference() | 'false' | kz_term:api_integer()) -> kz_term:api_integer().
+-spec time_left(kz_term:api_reference() | 'false' | timeout()) -> timeout() | 'undefined'.
 time_left(Ref) when is_reference(Ref) ->
     time_left(erlang:read_timer(Ref));
 time_left('false') -> 'undefined';
@@ -2008,11 +2008,12 @@ recording_url(JObj) ->
 
 -spec uri(kz_term:ne_binary(), iodata()) -> kz_term:ne_binary().
 uri(URI, QueryString) ->
+    QueryBinary = kz_term:to_binary(QueryString),
     case kz_http_util:urlsplit(URI) of
         {Scheme, Host, Path, <<>>, Fragment} ->
-            kz_http_util:urlunsplit({Scheme, Host, Path, iolist_to_binary(QueryString), Fragment});
+        kz_http_util:urlunsplit({Scheme, Host, Path, QueryBinary, Fragment});
         {Scheme, Host, Path, QS, Fragment} ->
-            kz_http_util:urlunsplit({Scheme, Host, Path, <<QS/binary, "&", (iolist_to_binary(QueryString))/binary>>, Fragment})
+            kz_http_util:urlunsplit({Scheme, Host, Path, <<QS/binary, "&", QueryBinary/binary>>, Fragment})
     end.
 
 -spec apply_state_updates(state()) -> kz_types:handle_fsm_ret(state()).
@@ -2100,7 +2101,7 @@ handle_resume(#state{agent_listener=AgentListener
     acdc_agent_listener:presence_update(AgentListener, ?PRESENCE_GREEN),
     {'next_state', 'ready', State#state{pause_ref='undefined'}}.
 
--spec handle_pause(integer(), state()) -> kz_types:handle_fsm_ret(state()).
+-spec handle_pause(timeout(), state()) -> kz_types:handle_fsm_ret(state()).
 handle_pause(Timeout, #state{agent_listener=AgentListener}=State) ->
     acdc_agent_listener:presence_update(AgentListener, ?PRESENCE_RED_FLASH),
     Ref = start_pause_timer(Timeout),
