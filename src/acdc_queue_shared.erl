@@ -71,7 +71,7 @@
 %%------------------------------------------------------------------------------
 -spec start_link(pid(), pid(), kz_term:ne_binary(), kz_term:ne_binary()) -> kz_types:startlink_ret().
 start_link(WorkerSup, _, AccountId, QueueId) ->
-    Priority = acdc_util:max_priority(kz_util:format_account_db(AccountId), QueueId),
+    Priority = acdc_util:max_priority(kzs_util:format_account_db(AccountId), QueueId),
     gen_listener:start_link(?SERVER
                            ,[{'bindings', ?SHARED_QUEUE_BINDINGS(AccountId, QueueId)}
                             ,{'responders', ?RESPONDERS}
