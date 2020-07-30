@@ -2,7 +2,7 @@
              [{applications,[callflow,crossbar,crypto,gproc,kazoo,kazoo_amqp,
                              kazoo_apps,kazoo_caches,kazoo_call,kazoo_data,
                              kazoo_documents,kazoo_edr,kazoo_endpoint,
-                             kazoo_events,kazoo_media,kazoo_modb,kazoo_stdlib,
+                             kazoo_hooks,kazoo_media,kazoo_modb,kazoo_stdlib,
                              kazoo_web,kernel,lager,stdlib,webseq]},
               {description,"ACDc - Automatic Call Distribution commander"},
               {env,[{is_kazoo_app,true}]},
