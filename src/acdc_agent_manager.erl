@@ -32,7 +32,7 @@
         ]).
 
 -include("acdc.hrl").
--include_lib("kazoo_events/include/kz_hooks.hrl").
+-include_lib("kazoo_hooks/include/kz_hooks.hrl").
 
 -record(state, {}).
 -type state() :: #state{}.
