@@ -219,7 +219,7 @@ handle_call_event(JObj, Props) ->
     FSM = props:get_value('fsm_pid', Props),
     case kapi_call:event_v(JObj) of
         'true' ->
-            {Category, Name} = kz_util:get_event_type(JObj),
+            {Category, Name} = kz_api:event_type(JObj),
             handle_call_event(Category, Name, FSM, JObj, Props);
         'false' ->
             'true' = kz_api:error_resp_v(JObj),
