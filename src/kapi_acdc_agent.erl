@@ -232,12 +232,13 @@ stats_resp_v(JObj) ->
 -define(OPTIONAL_AGENT_HEADERS, [<<"Presence-ID">>
                                 ,<<"Presence-State">>
                                 ,<<"Queue-ID">>
-                                ,<<"Time-Limit">>
                                 ]).
 -define(AGENT_VALUES, [{<<"Event-Category">>, <<"agent">>}
                       ,{<<"Presence-State">>, kapi_presence:presence_states()}
                       ]).
 -define(AGENT_TYPES, []).
+
+-define(OPTIONAL_PAUSE_HEADERS, [<<"Time-Limit">> | ?OPTIONAL_AGENT_HEADERS]).
 
 -define(LOGIN_VALUES, [{<<"Event-Name">>, <<"login">>} | ?AGENT_VALUES]).
 -define(LOGOUT_VALUES, [{<<"Event-Name">>, <<"logout">>} | ?AGENT_VALUES]).
@@ -247,6 +248,14 @@ stats_resp_v(JObj) ->
 -define(LOGIN_QUEUE_VALUES, [{<<"Event-Name">>, <<"login_queue">>} | ?AGENT_VALUES]).
 -define(LOGOUT_QUEUE_VALUES, [{<<"Event-Name">>, <<"logout_queue">>} | ?AGENT_VALUES]).
 -define(RESTART_VALUES, [{<<"Event-Name">>, <<"restart">>} | ?AGENT_VALUES]).
+
+-define(PAUSE_TYPES, [{<<"Time-Limit">>, fun(<<"infinity">>) -> 'true';
+                                            (TimeLimit) when is_integer(TimeLimit) -> TimeLimit >= 0;
+                                            (_) -> 'false'
+                                         end
+                      }
+                      | ?AGENT_TYPES
+                     ]).
 
 -spec login(kz_term:api_terms()) ->
           {'ok', iolist()} |
@@ -322,7 +331,7 @@ logout_queue_v(JObj) ->
           {'error', string()}.
 pause(Props) when is_list(Props) ->
     case pause_v(Props) of
-        'true' -> kz_api:build_message(Props, ?AGENT_HEADERS, ?OPTIONAL_AGENT_HEADERS);
+        'true' -> kz_api:build_message(Props, ?AGENT_HEADERS, ?OPTIONAL_PAUSE_HEADERS);
         'false' -> {'error', "Proplist failed validation for agent_pause"}
     end;
 pause(JObj) ->
@@ -330,7 +339,7 @@ pause(JObj) ->
 
 -spec pause_v(kz_term:api_terms()) -> boolean().
 pause_v(Prop) when is_list(Prop) ->
-    kz_api:validate(Prop, ?AGENT_HEADERS, ?PAUSE_VALUES, ?AGENT_TYPES);
+    kz_api:validate(Prop, ?AGENT_HEADERS, ?PAUSE_VALUES, ?PAUSE_TYPES);
 pause_v(JObj) ->
     pause_v(kz_json:to_proplist(JObj)).
 
